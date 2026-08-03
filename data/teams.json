@@ -1,0 +1,147 @@
+{
+  "@context": "../schema/context.jsonld",
+  "@type": "tl:TeamSet",
+  "generatedAt": "2026-08-03T20:30:35.762Z",
+  "teams": {
+    "arsenal": {
+      "@type": "SportsTeam",
+      "name": "Arsenal",
+      "aliases": [
+        "Arsenal"
+      ]
+    },
+    "coventry": {
+      "@type": "SportsTeam",
+      "name": "Coventry",
+      "aliases": [
+        "Coventry"
+      ]
+    },
+    "hull": {
+      "@type": "SportsTeam",
+      "name": "Hull",
+      "aliases": [
+        "Hull"
+      ]
+    },
+    "man-utd": {
+      "@type": "SportsTeam",
+      "name": "Man Utd",
+      "aliases": [
+        "Man Utd"
+      ]
+    },
+    "everton": {
+      "@type": "SportsTeam",
+      "name": "Everton",
+      "aliases": [
+        "Everton"
+      ]
+    },
+    "crystal-palace": {
+      "@type": "SportsTeam",
+      "name": "Crystal Palace",
+      "aliases": [
+        "Crystal Palace"
+      ]
+    },
+    "ipswich": {
+      "@type": "SportsTeam",
+      "name": "Ipswich",
+      "aliases": [
+        "Ipswich"
+      ]
+    },
+    "sunderland": {
+      "@type": "SportsTeam",
+      "name": "Sunderland",
+      "aliases": [
+        "Sunderland"
+      ]
+    },
+    "nott-m-forest": {
+      "@type": "SportsTeam",
+      "name": "Nott'm Forest",
+      "aliases": [
+        "Nott'm Forest"
+      ]
+    },
+    "leeds": {
+      "@type": "SportsTeam",
+      "name": "Leeds",
+      "aliases": [
+        "Leeds"
+      ]
+    },
+    "brentford": {
+      "@type": "SportsTeam",
+      "name": "Brentford",
+      "aliases": [
+        "Brentford"
+      ]
+    },
+    "spurs": {
+      "@type": "SportsTeam",
+      "name": "Spurs",
+      "aliases": [
+        "Spurs"
+      ]
+    },
+    "brighton": {
+      "@type": "SportsTeam",
+      "name": "Brighton",
+      "aliases": [
+        "Brighton"
+      ]
+    },
+    "aston-villa": {
+      "@type": "SportsTeam",
+      "name": "Aston Villa",
+      "aliases": [
+        "Aston Villa"
+      ]
+    },
+    "man-city": {
+      "@type": "SportsTeam",
+      "name": "Man City",
+      "aliases": [
+        "Man City"
+      ]
+    },
+    "bournemouth": {
+      "@type": "SportsTeam",
+      "name": "Bournemouth",
+      "aliases": [
+        "Bournemouth"
+      ]
+    },
+    "newcastle": {
+      "@type": "SportsTeam",
+      "name": "Newcastle",
+      "aliases": [
+        "Newcastle"
+      ]
+    },
+    "liverpool": {
+      "@type": "SportsTeam",
+      "name": "Liverpool",
+      "aliases": [
+        "Liverpool"
+      ]
+    },
+    "fulham": {
+      "@type": "SportsTeam",
+      "name": "Fulham",
+      "aliases": [
+        "Fulham"
+      ]
+    },
+    "chelsea": {
+      "@type": "SportsTeam",
+      "name": "Chelsea",
+      "aliases": [
+        "Chelsea"
+      ]
+    }
+  }
+}

@@ -1,0 +1,56 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Touchline — Premier League 2026-27, by the numbers</title>
+<link rel="stylesheet" href="style.css">
+
+<header>
+  <h1>Touchline</h1>
+  <p class="sub">Premier League 2026-27 — fixtures, table, Elo, fair odds.
+    Data-driven, sources named, <a href="data/">files public</a>.</p>
+</header>
+
+<main>
+  <section id="notice" class="notice hidden"></section>
+
+  <section class="panel">
+    <h2>Matchweek <span id="mw-num">1</span></h2>
+    <p class="hint" id="mw-hint"></p>
+    <div class="mw-nav">
+      <button id="mw-prev">&larr;</button>
+      <button id="mw-next">&rarr;</button>
+    </div>
+    <table id="fixtures-table">
+      <thead>
+        <tr><th>Kickoff (UTC)</th><th>Home</th><th></th><th>Away</th>
+            <th class="num" title="fair probability home / draw / away">1&thinsp;X&thinsp;2 (fair)</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>Table</h2>
+    <p class="hint" id="table-hint">Computed from played fixtures; before kickoff it shows Elo order.</p>
+    <table id="league-table">
+      <thead>
+        <tr><th>#</th><th>Club</th><th class="num">P</th><th class="num">W</th>
+            <th class="num">D</th><th class="num">L</th><th class="num">GD</th>
+            <th class="num">Pts</th><th class="num">Elo</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</main>
+
+<footer>
+  <p><a href="touchline.js">touchline.js</a> is the whole of the maths — pure,
+    tested, uncalibrated v0 model and it says so.
+    Fixtures: <a href="https://fixturedownload.com/">fixturedownload.com</a> ·
+    Elo: <a href="http://clubelo.com/">clubelo.com</a>.</p>
+  <p class="hint">AGPL-3.0-or-later · information only — no odds with margin,
+    no stakes · sibling of
+    <a href="https://github.com/melvincarvalho/tavern">tavern</a></p>
+</footer>
+
+<script type="module" src="app.js"></script>

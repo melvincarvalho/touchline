@@ -1,0 +1,31 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "@vocab": "https://schema.org/",
+    "tl": "https://melvincarvalho.github.io/touchline/schema/vocab#",
+
+    "teams":    { "@id": "tl:teams",    "@container": "@id" },
+    "fixtures": { "@id": "tl:fixtures", "@container": "@list" },
+
+    "elo":            { "@id": "tl:elo",            "@type": "xsd:decimal" },
+    "eloDate":        { "@id": "tl:eloDate",        "@type": "xsd:date" },
+    "eloSource":      { "@id": "tl:eloSource",      "@type": "@id" },
+    "matchweek":      { "@id": "tl:matchweek",      "@type": "xsd:integer" },
+    "matchNumber":    { "@id": "tl:matchNumber",    "@type": "xsd:integer" },
+    "kickoff":        { "@id": "startDate",         "@type": "xsd:dateTime" },
+    "venue":          "location",
+    "homeTeam":       { "@id": "tl:homeTeam",       "@type": "@id" },
+    "awayTeam":       { "@id": "tl:awayTeam",       "@type": "@id" },
+    "homeGoals":      { "@id": "tl:homeGoals",      "@type": "xsd:integer" },
+    "awayGoals":      { "@id": "tl:awayGoals",      "@type": "xsd:integer" },
+    "status":         "tl:status",
+    "fairProbs":      "tl:fairProbs",
+    "home":           { "@id": "tl:pHome",          "@type": "xsd:decimal" },
+    "draw":           { "@id": "tl:pDraw",          "@type": "xsd:decimal" },
+    "away":           { "@id": "tl:pAway",          "@type": "xsd:decimal" },
+    "generatedAt":    { "@id": "tl:generatedAt",    "@type": "xsd:dateTime" },
+    "sourceFeed":     { "@id": "tl:sourceFeed",     "@type": "@id" },
+
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  }
+}
