@@ -101,6 +101,54 @@ function leagueTable(fixtures) {
     || (x.team < y.team ? -1 : 1));
 }
 
+/** HTML-escape for rendering untrusted strings (external match docs). */
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+/**
+ * Validate an external match document (schema/match-doc.md). Untrusted
+ * input: this is the gate between a fetched blob and the renderer, so it
+ * refuses loudly with every reason rather than the first.
+ * @returns {{ok:boolean, errors:string[]}}
+ */
+function validateMatchDoc(doc) {
+  const errors = [];
+  const isStr = (v, max) => typeof v === 'string' && v.length > 0 && v.length <= max;
+  if (!doc || typeof doc !== 'object' || Array.isArray(doc)) {
+    return { ok: false, errors: ['document is not an object'] };
+  }
+  for (const side of ['homeTeam', 'awayTeam']) {
+    const t = doc[side];
+    if (!t || typeof t !== 'object') { errors.push(`${side} missing`); continue; }
+    if (!isStr(t.name, 48)) errors.push(`${side}.name must be a string of 1-48 chars`);
+    if (t.code != null && !/^[A-Z0-9]{2,4}$/.test(t.code)) errors.push(`${side}.code must match [A-Z0-9]{2,4}`);
+    if (t.colors != null && !(Array.isArray(t.colors) && t.colors.length === 2
+      && t.colors.every((c) => /^#[0-9a-fA-F]{6}$/.test(c)))) {
+      errors.push(`${side}.colors must be two #rrggbb values`);
+    }
+    if (t.elo != null && !Number.isFinite(t.elo)) errors.push(`${side}.elo must be a number`);
+  }
+  if (!isStr(doc.kickoff, 32) || Number.isNaN(Date.parse(doc.kickoff))) {
+    errors.push('kickoff must be an ISO date-time');
+  }
+  if (!['scheduled', 'played', 'postponed'].includes(doc.status)) {
+    errors.push('status must be scheduled | played | postponed');
+  }
+  if (doc.status === 'played') {
+    for (const g of ['homeGoals', 'awayGoals']) {
+      if (!Number.isInteger(doc[g]) || doc[g] < 0) errors.push(`${g} must be a non-negative integer when played`);
+    }
+  }
+  if (doc.venue != null && !isStr(doc.venue, 64)) errors.push('venue must be a string of 1-64 chars');
+  if (doc.oracle != null && !(isStr(doc.oracle, 256) && /^https?:\/\//.test(doc.oracle))) {
+    errors.push('oracle must be an http(s) URL');
+  }
+  return { ok: errors.length === 0, errors };
+}
+
 function clamp(n, lo, hi) {
   if (!Number.isFinite(n)) return lo;
   return Math.min(hi, Math.max(lo, n));
@@ -109,4 +157,5 @@ function clamp(n, lo, hi) {
 export {
   HOME_ADVANTAGE_ELO, DRAW_MAX, DRAW_WIDTH,
   eloExpected, fairProbs, fairOdds, eloUpdate, leagueTable,
+  escapeHtml, validateMatchDoc,
 };

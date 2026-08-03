@@ -25,6 +25,19 @@ static page that renders them.
    history, a pool-bank with the tavern's share accounting, and named oracle
    feeds. The information layer must stand alone first.
 
+## External match documents
+
+Any match-shaped JSON renders via the query string —
+`?src=<url-of-document>` — teams inline with their own colours and codes,
+priced from their Elo when present. The document is untrusted input:
+validated (loudly) and escaped before render, with the source host and the
+declared `oracle` bannered. Spec: [`schema/match-doc.md`](schema/match-doc.md);
+live examples:
+[scheduled](https://melvincarvalho.github.io/touchline/?src=examples/friendly-scheduled.json) ·
+[played](https://melvincarvalho.github.io/touchline/?src=examples/friendly-played.json).
+Minted matches are the compressed-time test rig the wager layer will be
+built against.
+
 ## The model, honestly
 
 v0 prices from Elo alone: clubelo's ~65-point home advantage, and a draw

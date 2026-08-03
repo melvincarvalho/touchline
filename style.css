@@ -240,6 +240,14 @@ table.facts td.num { width: 6rem; font-weight: 600; }
 .meeting a:hover { color: var(--ink); }
 .meeting.here span { color: var(--ink); font-weight: 600; }
 
+.doc-provenance {
+  margin-top: 1rem; padding: .6rem .8rem;
+  background: var(--surface); border: 1px dashed var(--line); border-radius: 4px;
+  color: var(--ink-3); font-size: .78rem; line-height: 1.6;
+}
+.doc-provenance code { color: var(--ink-2); }
+.doc-provenance a { color: var(--accent); overflow-wrap: anywhere; }
+
 footer { max-width: 46rem; margin: 2rem auto 0; padding: 0 .6rem 2rem;
          color: var(--ink-3); font-size: .78rem; text-align: center; }
 footer a { color: var(--ink-2); }

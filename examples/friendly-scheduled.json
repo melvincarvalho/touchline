@@ -1,0 +1,11 @@
+{
+  "@context": "https://melvincarvalho.github.io/touchline/schema/context.jsonld",
+  "@type": "SportsEvent",
+  "name": "Melvo FC v Phil Athletic",
+  "kickoff": "2026-08-09T18:00:00Z",
+  "venue": "The Tidepool Arena",
+  "status": "scheduled",
+  "homeTeam": { "name": "Melvo FC", "code": "MEL", "colors": ["#0f7d5c", "#ffffff"], "elo": 1600 },
+  "awayTeam": { "name": "Phil Athletic", "code": "PHI", "colors": ["#b45309", "#ffffff"], "elo": 1540 },
+  "oracle": "https://melvincarvalho.github.io/touchline/examples/friendly-played.json"
+}

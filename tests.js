@@ -99,6 +99,50 @@ console.log('league table');
   check('goals tally: a scored 5', tbl[0].gf === 5 && tbl[0].ga === 0);
 }
 
+console.log('escaping');
+{
+  check('all five specials escape',
+    t.escapeHtml('<img src=x onerror="a&b\'">')
+      === '&lt;img src=x onerror=&quot;a&amp;b&#39;&quot;&gt;');
+  check('plain text passes through', t.escapeHtml('Melvo FC') === 'Melvo FC');
+  check('non-strings coerce, not crash', t.escapeHtml(1600) === '1600');
+}
+
+console.log('match documents');
+{
+  const good = {
+    kickoff: '2026-08-09T18:00:00Z', status: 'scheduled',
+    homeTeam: { name: 'Melvo FC', code: 'MEL', colors: ['#0f7d5c', '#ffffff'], elo: 1600 },
+    awayTeam: { name: 'Phil Athletic' },
+  };
+  check('a good document validates', t.validateMatchDoc(good).ok,
+    t.validateMatchDoc(good).errors.join('; '));
+  check('teams may omit the optional fields', t.validateMatchDoc(good).ok);
+
+  const bad = t.validateMatchDoc({
+    kickoff: 'not a date', status: 'live',
+    homeTeam: { name: '', colors: ['red', 'white'] },
+    awayTeam: null,
+  });
+  check('a bad document is refused', !bad.ok);
+  check('with EVERY reason, not just the first', bad.errors.length >= 4, bad.errors.length);
+
+  check('played requires both goals',
+    !t.validateMatchDoc({ ...good, status: 'played', homeGoals: 2 }).ok);
+  check('played with goals validates',
+    t.validateMatchDoc({ ...good, status: 'played', homeGoals: 2, awayGoals: 0 }).ok);
+  check('negative goals refused',
+    !t.validateMatchDoc({ ...good, status: 'played', homeGoals: -1, awayGoals: 0 }).ok);
+  check('a javascript: oracle is refused',
+    !t.validateMatchDoc({ ...good, oracle: 'javascript:alert(1)' }).ok);
+  check('an https oracle is fine',
+    t.validateMatchDoc({ ...good, oracle: 'https://example.org/r.json' }).ok);
+  check('an XSS team name VALIDATES (escaping is the renderer\'s job, and pinned above)',
+    t.validateMatchDoc({ ...good, homeTeam: { name: '<script>x</script>' } }).ok);
+  check('arrays and null are refused as documents',
+    !t.validateMatchDoc(null).ok && !t.validateMatchDoc([]).ok);
+}
+
 console.log('data files (when present)');
 try {
   const fixtures = JSON.parse(readFileSync(new URL('./data/fixtures.json', import.meta.url), 'utf8'));

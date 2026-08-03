@@ -1,7 +1,7 @@
 // Touchline UI — livescore-dense rows over data/*.json, maths from
 // touchline.js. No build, no framework. Routes: '' (matches), '#table',
 // '#team/<id>', '#match/<@id>'.
-import { fairProbs, fairOdds, leagueTable } from './touchline.js';
+import { fairProbs, fairOdds, leagueTable, escapeHtml as esc, validateMatchDoc } from './touchline.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -21,16 +21,16 @@ const fmtPct = (p) => (p * 100).toFixed(0) + '%';
 
 // Monogram roundel: kit colours + 3-letter code, deliberately not the
 // trademarked crest. Text colour follows the primary's luminance.
-function roundel(id, cls = '') {
-  const t = teams[id] || {};
+function roundelFor(t, cls = '') {
   const [bg, ring] = t.colors || ['#888888', '#ffffff'];
   const lum = (hex) => {
     const n = parseInt(hex.slice(1), 16);
     return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
   };
   const fg = lum(bg) > 0.6 ? (ring !== '#ffffff' && lum(ring) < 0.6 ? ring : '#1b231e') : '#ffffff';
-  return `<span class="roundel ${cls}" style="background:${bg};color:${fg};box-shadow:inset 0 0 0 2px ${ring}">${t.code || '?'}</span>`;
+  return `<span class="roundel ${cls}" style="background:${esc(bg)};color:${fg};box-shadow:inset 0 0 0 2px ${esc(ring)}">${esc(t.code || '?')}</span>`;
 }
+function roundel(id, cls = '') { return roundelFor(teams[id] || {}, cls); }
 const hasElo = () => Object.values(teams).some((t) => t.elo != null);
 
 // Kickoffs display in the viewer's local time — the convention every live
@@ -290,6 +290,83 @@ function renderMatch(id) {
   $('match-body').innerHTML = inner;
 }
 
+// ---------------------------------------------------------------- external match documents
+// ?src=<url> renders a standalone match document (schema/match-doc.md).
+// UNTRUSTED input: validated before render, every string escaped, source and
+// oracle bannered so the reader knows whose word a result is.
+
+async function renderDoc(srcUrl) {
+  show('match');
+  $('match-title').textContent = '';
+  $('match-meta').textContent = 'loading document…';
+  $('match-body').innerHTML = '';
+  let doc;
+  try {
+    const res = await fetch(srcUrl, { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    doc = await res.json();
+  } catch (err) {
+    $('match-meta').textContent = '';
+    $('match-body').innerHTML = `<p class="hint">Could not load the document (${esc(err.message)}).</p>`;
+    return;
+  }
+  const v = validateMatchDoc(doc);
+  if (!v.ok) {
+    $('match-meta').textContent = 'invalid match document';
+    $('match-body').innerHTML = '<ul class="hint">'
+      + v.errors.map((e) => `<li>${esc(e)}</li>`).join('') + '</ul>';
+    return;
+  }
+
+  const played = doc.status === 'played';
+  const ko = new Date(doc.kickoff);
+  $('match-meta').textContent =
+    `${dayFmt.format(ko)}, ${timeFmt.format(ko)}${doc.venue ? ' · ' + doc.venue : ''}`
+    + (doc.status === 'postponed' ? ' · POSTPONED' : '');
+
+  const cell = (t, right) => `${roundelFor(t, 'big')}
+    <span class="hero-team">${esc(t.name)}</span>
+    <div class="hint">${t.elo != null ? 'Elo ' + esc(t.elo) : ''}</div>`;
+  const centre = played
+    ? `<div class="score">${doc.homeGoals}–${doc.awayGoals}</div><div class="hint">full time</div>`
+    : doc.status === 'postponed'
+      ? '<div class="ko-time">—</div><div class="hint">postponed</div>'
+      : `<div class="ko-time">${timeFmt.format(ko)}</div><div class="hint">${countdownTo(doc.kickoff)}</div>`;
+  let inner = `<div class="hero">
+    <div class="hero-side">${cell(doc.homeTeam)}</div>
+    <div class="hero-centre">${centre}</div>
+    <div class="hero-side right">${cell(doc.awayTeam)}</div>
+  </div>`;
+
+  if (!played && doc.status === 'scheduled'
+      && doc.homeTeam.elo != null && doc.awayTeam.elo != null) {
+    const p = fairProbs(doc.homeTeam.elo, doc.awayTeam.elo);
+    const o = fairOdds(p);
+    inner += `<div class="bigbar-wrap" title="fair 1X2 from the document's Elo — no margin">
+      <div class="bigbar">
+        <span class="h" style="flex:${p.home}"></span><span class="x" style="flex:${p.draw}"></span><span class="a" style="flex:${p.away}"></span>
+      </div>
+      <div class="bigbar-nums">
+        <span><b>${fmtPct(p.home)}</b> home · ${o.home.toFixed(2)}</span>
+        <span>draw ${fmtPct(p.draw)} · ${o.draw.toFixed(2)}</span>
+        <span><b>${fmtPct(p.away)}</b> away · ${o.away.toFixed(2)}</span>
+      </div>
+    </div>`;
+  }
+
+  let srcHost = srcUrl;
+  try { srcHost = new URL(srcUrl, location.href).host || 'this site'; } catch { /* keep raw */ }
+  inner += `<div class="doc-provenance">
+    <b>External match document</b> — anyone can mint one; rendering proves only
+    that a well-formed file exists at the source.
+    <div>source: <code>${esc(srcHost)}</code></div>
+    <div>oracle: ${doc.oracle
+      ? `<a href="${esc(doc.oracle)}" rel="nofollow noopener">${esc(doc.oracle)}</a>`
+      : '<i>none declared — nothing can settle this match</i>'}</div>
+  </div>`;
+  $('match-body').innerHTML = inner;
+}
+
 function ordinal(n) {
   const s = ['th', 'st', 'nd', 'rd'];
   const v = n % 100;
@@ -347,7 +424,9 @@ function notice(text) {
       notice('Elo sync pending — fixtures and kickoffs are live; fair odds appear once ratings land.');
     }
     window.addEventListener('hashchange', route);
-    route();
+    const src = new URLSearchParams(location.search).get('src');
+    if (src && !location.hash) renderDoc(src);
+    else route();
   } catch (err) {
     notice('Data files missing — run scripts/fetch-fixtures.js. (' + err.message + ')');
   }
