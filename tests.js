@@ -111,6 +111,14 @@ try {
   check('10 fixtures per matchweek', Object.values(perWeek).every((n) => n === 10));
   check('every fixture references a known club',
     fixtures.fixtures.every((f) => teams.teams[f.homeTeam] && teams.teams[f.awayTeam]));
+  check('every club carries a 3-letter code',
+    Object.values(teams.teams).every((t) => /^[A-Z]{3}$/.test(t.code || '')));
+  check('every club carries two kit colours',
+    Object.values(teams.teams).every((t) =>
+      Array.isArray(t.colors) && t.colors.length === 2
+      && t.colors.every((c) => /^#[0-9a-f]{6}$/i.test(c))));
+  check('codes are unique',
+    new Set(Object.values(teams.teams).map((t) => t.code)).size === 20);
   check('fixture ids are unique',
     new Set(fixtures.fixtures.map((f) => f['@id'])).size === 380);
 } catch (err) {

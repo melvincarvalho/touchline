@@ -1,11 +1,16 @@
 {
   "@context": "../schema/context.jsonld",
   "@type": "tl:TeamSet",
-  "generatedAt": "2026-08-03T20:30:35.762Z",
+  "generatedAt": "2026-08-03T21:11:40.380Z",
   "teams": {
     "arsenal": {
       "@type": "SportsTeam",
       "name": "Arsenal",
+      "code": "ARS",
+      "colors": [
+        "#ef0107",
+        "#ffffff"
+      ],
       "aliases": [
         "Arsenal"
       ]
@@ -13,6 +18,11 @@
     "coventry": {
       "@type": "SportsTeam",
       "name": "Coventry",
+      "code": "COV",
+      "colors": [
+        "#59c2e2",
+        "#ffffff"
+      ],
       "aliases": [
         "Coventry"
       ]
@@ -20,6 +30,11 @@
     "hull": {
       "@type": "SportsTeam",
       "name": "Hull",
+      "code": "HUL",
+      "colors": [
+        "#f5971d",
+        "#000000"
+      ],
       "aliases": [
         "Hull"
       ]
@@ -27,6 +42,11 @@
     "man-utd": {
       "@type": "SportsTeam",
       "name": "Man Utd",
+      "code": "MUN",
+      "colors": [
+        "#da291c",
+        "#000000"
+      ],
       "aliases": [
         "Man Utd"
       ]
@@ -34,6 +54,11 @@
     "everton": {
       "@type": "SportsTeam",
       "name": "Everton",
+      "code": "EVE",
+      "colors": [
+        "#003399",
+        "#ffffff"
+      ],
       "aliases": [
         "Everton"
       ]
@@ -41,6 +66,11 @@
     "crystal-palace": {
       "@type": "SportsTeam",
       "name": "Crystal Palace",
+      "code": "CRY",
+      "colors": [
+        "#1b458f",
+        "#c4122e"
+      ],
       "aliases": [
         "Crystal Palace"
       ]
@@ -48,6 +78,11 @@
     "ipswich": {
       "@type": "SportsTeam",
       "name": "Ipswich",
+      "code": "IPS",
+      "colors": [
+        "#3a64a3",
+        "#ffffff"
+      ],
       "aliases": [
         "Ipswich"
       ]
@@ -55,6 +90,11 @@
     "sunderland": {
       "@type": "SportsTeam",
       "name": "Sunderland",
+      "code": "SUN",
+      "colors": [
+        "#eb172b",
+        "#ffffff"
+      ],
       "aliases": [
         "Sunderland"
       ]
@@ -62,6 +102,11 @@
     "nott-m-forest": {
       "@type": "SportsTeam",
       "name": "Nott'm Forest",
+      "code": "NFO",
+      "colors": [
+        "#dd0000",
+        "#ffffff"
+      ],
       "aliases": [
         "Nott'm Forest"
       ]
@@ -69,6 +114,11 @@
     "leeds": {
       "@type": "SportsTeam",
       "name": "Leeds",
+      "code": "LEE",
+      "colors": [
+        "#ffffff",
+        "#1d428a"
+      ],
       "aliases": [
         "Leeds"
       ]
@@ -76,6 +126,11 @@
     "brentford": {
       "@type": "SportsTeam",
       "name": "Brentford",
+      "code": "BRE",
+      "colors": [
+        "#d20000",
+        "#ffffff"
+      ],
       "aliases": [
         "Brentford"
       ]
@@ -83,6 +138,11 @@
     "spurs": {
       "@type": "SportsTeam",
       "name": "Spurs",
+      "code": "TOT",
+      "colors": [
+        "#ffffff",
+        "#132257"
+      ],
       "aliases": [
         "Spurs"
       ]
@@ -90,6 +150,11 @@
     "brighton": {
       "@type": "SportsTeam",
       "name": "Brighton",
+      "code": "BHA",
+      "colors": [
+        "#0057b8",
+        "#ffffff"
+      ],
       "aliases": [
         "Brighton"
       ]
@@ -97,6 +162,11 @@
     "aston-villa": {
       "@type": "SportsTeam",
       "name": "Aston Villa",
+      "code": "AVL",
+      "colors": [
+        "#67102f",
+        "#94bee5"
+      ],
       "aliases": [
         "Aston Villa"
       ]
@@ -104,6 +174,11 @@
     "man-city": {
       "@type": "SportsTeam",
       "name": "Man City",
+      "code": "MCI",
+      "colors": [
+        "#6cabdd",
+        "#ffffff"
+      ],
       "aliases": [
         "Man City"
       ]
@@ -111,6 +186,11 @@
     "bournemouth": {
       "@type": "SportsTeam",
       "name": "Bournemouth",
+      "code": "BOU",
+      "colors": [
+        "#da020e",
+        "#000000"
+      ],
       "aliases": [
         "Bournemouth"
       ]
@@ -118,6 +198,11 @@
     "newcastle": {
       "@type": "SportsTeam",
       "name": "Newcastle",
+      "code": "NEW",
+      "colors": [
+        "#241f20",
+        "#ffffff"
+      ],
       "aliases": [
         "Newcastle"
       ]
@@ -125,6 +210,11 @@
     "liverpool": {
       "@type": "SportsTeam",
       "name": "Liverpool",
+      "code": "LIV",
+      "colors": [
+        "#c8102e",
+        "#ffffff"
+      ],
       "aliases": [
         "Liverpool"
       ]
@@ -132,6 +222,11 @@
     "fulham": {
       "@type": "SportsTeam",
       "name": "Fulham",
+      "code": "FUL",
+      "colors": [
+        "#ffffff",
+        "#000000"
+      ],
       "aliases": [
         "Fulham"
       ]
@@ -139,6 +234,11 @@
     "chelsea": {
       "@type": "SportsTeam",
       "name": "Chelsea",
+      "code": "CHE",
+      "colors": [
+        "#034694",
+        "#ffffff"
+      ],
       "aliases": [
         "Chelsea"
       ]

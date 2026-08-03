@@ -7,6 +7,8 @@
     "teams":    { "@id": "tl:teams",    "@container": "@id" },
     "fixtures": { "@id": "tl:fixtures", "@container": "@list" },
 
+    "code":           "tl:code",
+    "colors":         { "@id": "tl:colors",         "@container": "@list" },
     "elo":            { "@id": "tl:elo",            "@type": "xsd:decimal" },
     "eloDate":        { "@id": "tl:eloDate",        "@type": "xsd:date" },
     "eloSource":      { "@id": "tl:eloSource",      "@type": "@id" },

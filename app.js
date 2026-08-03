@@ -18,6 +18,19 @@ let mw = 1;
 const eloOf = (id) => teams[id]?.elo ?? null;
 const nameOf = (id) => teams[id]?.name ?? id;
 const fmtPct = (p) => (p * 100).toFixed(0) + '%';
+
+// Monogram roundel: kit colours + 3-letter code, deliberately not the
+// trademarked crest. Text colour follows the primary's luminance.
+function roundel(id, cls = '') {
+  const t = teams[id] || {};
+  const [bg, ring] = t.colors || ['#888888', '#ffffff'];
+  const lum = (hex) => {
+    const n = parseInt(hex.slice(1), 16);
+    return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+  };
+  const fg = lum(bg) > 0.6 ? (ring !== '#ffffff' && lum(ring) < 0.6 ? ring : '#1b231e') : '#ffffff';
+  return `<span class="roundel ${cls}" style="background:${bg};color:${fg};box-shadow:inset 0 0 0 2px ${ring}">${t.code || '?'}</span>`;
+}
 const hasElo = () => Object.values(teams).some((t) => t.elo != null);
 
 // Kickoffs display in the viewer's local time — the convention every live
@@ -74,8 +87,8 @@ function renderMatches() {
     el.innerHTML = `
       <div class="when" title="${f.kickoff} (UTC)">${played ? '<div class="ft">FT</div>' : timeFmt.format(ko)}</div>
       <div class="sides">
-        <div class="side ${homeWon ? 'winner' : ''}"><span>${nameOf(f.homeTeam)}</span><span class="goals">${played ? f.homeGoals : ''}</span></div>
-        <div class="side ${awayWon ? 'winner' : ''}"><span>${nameOf(f.awayTeam)}</span><span class="goals">${played ? f.awayGoals : ''}</span></div>
+        <div class="side ${homeWon ? 'winner' : ''}"><span>${roundel(f.homeTeam)}${nameOf(f.homeTeam)}</span><span class="goals">${played ? f.homeGoals : ''}</span></div>
+        <div class="side ${awayWon ? 'winner' : ''}"><span>${roundel(f.awayTeam)}${nameOf(f.awayTeam)}</span><span class="goals">${played ? f.awayGoals : ''}</span></div>
       </div>
       <div class="odds">${right}</div>`;
     list.appendChild(el);
@@ -110,7 +123,7 @@ function renderTable() {
       + (anyPlayed && i >= rows.length - 3 ? ' zone-rel' : '');
     tr.onclick = () => { location.hash = '#team/' + r.team; };
     tr.innerHTML = `
-      <td>${i + 1}</td><td>${nameOf(r.team)}</td>
+      <td>${i + 1}</td><td>${roundel(r.team)}${nameOf(r.team)}</td>
       <td class="num">${r.played}</td><td class="num">${r.won}</td>
       <td class="num">${r.drawn}</td><td class="num">${r.lost}</td>
       <td class="num">${r.gf - r.ga}</td><td class="num pts">${r.points}</td>
@@ -131,7 +144,7 @@ function renderTeam(id) {
   const team = teams[id];
   if (!team) { location.hash = ''; return; }
   show('team');
-  $('team-title').textContent = team.name;
+  $('team-title').innerHTML = roundel(id, 'big') + ' ' + team.name;
   const mine = fixtures.filter((f) => f.homeTeam === id || f.awayTeam === id);
   const record = leagueTable(mine.filter((f) => f.status === 'played')).find((r) => r.team === id);
   $('team-meta').textContent =
@@ -217,7 +230,7 @@ function renderMatch(id) {
   const teamCell = (tid) => {
     const r = rec(tid);
     const p = pos(tid);
-    return `<a class="hero-team" href="#team/${tid}">${nameOf(tid)}</a>
+    return `${roundel(tid, 'big')}<a class="hero-team" href="#team/${tid}">${nameOf(tid)}</a>
       <div class="hint">${p ? ordinal(p) + (r ? ` · ${r.points} pts` : '') : (eloOf(tid) != null ? 'Elo ' + eloOf(tid) : '')}</div>
       <div class="form">${formStrip(tid)}</div>`;
   };
