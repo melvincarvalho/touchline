@@ -91,6 +91,14 @@ th { font-weight: normal; color: var(--ink-soft); font-size: .8rem;
 td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 td.vs { color: var(--ink-soft); text-align: center; }
 td.won { color: var(--win); font-weight: bold; }
+tr.clickable { cursor: pointer; }
+tr.clickable:hover td { background: #f2efe3; }
+
+.crumbs { margin-bottom: .9rem; }
+.crumbs a { color: #e9f2ec; text-decoration: none; font-size: .9rem; }
+.crumbs a:hover { text-decoration: underline; }
+
+.score { font-size: 1.6rem; text-align: center; margin: .8rem 0; }
 
 footer { text-align: center; margin-top: 2.2rem; color: #cfe3d4; font-size: .88rem; }
 footer a { color: #e9f2ec; }

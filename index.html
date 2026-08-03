@@ -13,6 +13,26 @@
 <main>
   <section id="notice" class="notice hidden"></section>
 
+  <nav id="crumbs" class="crumbs hidden"><a href="#">&larr; all fixtures</a></nav>
+
+  <section id="view-match" class="panel hidden">
+    <h2 id="match-title"></h2>
+    <p class="hint" id="match-meta"></p>
+    <div id="match-body"></div>
+  </section>
+
+  <section id="view-team" class="panel hidden">
+    <h2 id="team-title"></h2>
+    <p class="hint" id="team-meta"></p>
+    <table id="team-fixtures">
+      <thead>
+        <tr><th>Kickoff (UTC)</th><th>MW</th><th>Fixture</th><th class="num">Result / fair 1X2</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <div id="view-home">
   <section class="panel">
     <h2>Matchweek <span id="mw-num">1</span></h2>
     <p class="hint" id="mw-hint"></p>
@@ -41,6 +61,7 @@
       <tbody></tbody>
     </table>
   </section>
+  </div>
 </main>
 
 <footer>
