@@ -1,27 +1,27 @@
-/* Touchline — livescore-dense, dark-first. Rows you scan, not panels you read.
-   Diverging 1X2 palette validated (dataviz six checks) against the surface:
-   home #2b9a71 · draw neutral · away #c8722c, fixed order + labels + 2px gaps
-   as secondary encoding. */
+/* Touchline — livescore-dense, light. Rows you scan, not panels you read.
+   Diverging 1X2 palette validated (dataviz six checks) against the light
+   surface: home #0f7d5c · draw neutral · away #b45309 (CVD dE 9.0 protan,
+   all checks pass), fixed order + labels + 2px gaps as secondary encoding. */
 
 :root {
-  --surface:     #0d1512;
-  --surface-2:   #121e18;
-  --row:         #16241d;
-  --row-hover:   #1d2f26;
-  --line:        #23352b;
-  --ink:         #e8efe9;
-  --ink-2:       #9fb2a6;
-  --ink-3:       #64756b;
-  --accent:      #ffd166;
-  --home:        #2b9a71;
-  --draw:        #56645c;
-  --away:        #c8722c;
-  --live:        #e4574f;
+  --surface:     #f2f4f1;
+  --surface-2:   #ffffff;
+  --row:         #ffffff;
+  --row-hover:   #eaf0ea;
+  --line:        #dfe5df;
+  --ink:         #1b231e;
+  --ink-2:       #4d5a52;
+  --ink-3:       #7f8b83;
+  --accent:      #0f6a4e;
+  --home:        #0f7d5c;
+  --draw:        #97a09c;
+  --away:        #b45309;
+  --live:        #b3261e;
 }
 
 * { box-sizing: border-box; }
 
-html { color-scheme: dark; }
+html { color-scheme: light; }
 
 body {
   margin: 0;
@@ -46,7 +46,7 @@ a { color: var(--accent); }
   font-weight: 800; letter-spacing: .12em; font-size: 1.02rem;
   color: var(--ink); text-decoration: none; text-transform: uppercase;
 }
-.topbar .brand span { color: var(--accent); }
+.topbar .brand span { color: var(--home); }
 .topbar .season { color: var(--ink-3); font-size: .82rem; }
 
 main { max-width: 46rem; margin: 0 auto; padding: 0 .6rem 4rem; }
@@ -68,9 +68,9 @@ main { max-width: 46rem; margin: 0 auto; padding: 0 .6rem 4rem; }
 .tabs a:hover { color: var(--ink); }
 
 .notice {
-  background: rgba(255, 209, 102, .08);
-  border: 1px solid rgba(255, 209, 102, .25);
-  border-left: 3px solid var(--accent);
+  background: rgba(180, 83, 9, .07);
+  border: 1px solid rgba(180, 83, 9, .25);
+  border-left: 3px solid var(--away);
   color: var(--ink-2);
   padding: .55rem .8rem; border-radius: 3px;
   margin: .6rem 0; font-size: .82rem;
@@ -110,7 +110,7 @@ main { max-width: 46rem; margin: 0 auto; padding: 0 .6rem 4rem; }
   grid-template-columns: 3.4rem 1fr auto;
   gap: 0 .8rem; align-items: center;
   background: var(--row);
-  border-bottom: 1px solid var(--surface);
+  border-bottom: 1px solid var(--line);
   padding: .45rem .7rem;
   cursor: pointer;
   border-radius: 2px;
