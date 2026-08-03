@@ -1,19 +1,39 @@
 <!doctype html>
+<html lang="en">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Touchline — Premier League 2026-27, by the numbers</title>
+<title>Touchline — Premier League 2026-27 fixtures, scores &amp; fair odds</title>
+<meta name="description" content="Premier League 2026-27: every fixture, score, the table, club Elo and fair 1X2 probabilities. No ads, no trackers, data files public.">
+<meta property="og:title" content="Touchline — Premier League 2026-27">
+<meta property="og:description" content="Fixtures, scores, the table, and fair odds — fast, open data, no ads.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://melvincarvalho.github.io/touchline/">
+<meta name="theme-color" content="#0d1512">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
 <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-<header>
-  <h1>Touchline</h1>
-  <p class="sub">Premier League 2026-27 — fixtures, table, Elo, fair odds.
-    Data-driven, sources named, <a href="data/">files public</a>.</p>
-</header>
+<div class="topbar">
+  <a class="brand" href="#">Touch<span>line</span></a>
+  <span class="season">Premier League · 2026-27</span>
+</div>
 
 <main>
+  <div class="league-head">
+    <h1>Premier League</h1>
+    <span class="sub" id="head-sub">England · 2026-27</span>
+  </div>
+
+  <nav class="tabs">
+    <a href="#" id="tab-matches" class="active">Matches</a>
+    <a href="#table" id="tab-table">Table</a>
+  </nav>
+
   <section id="notice" class="notice hidden"></section>
 
-  <nav id="crumbs" class="crumbs hidden"><a href="#">&larr; all fixtures</a></nav>
+  <nav id="crumbs" class="crumbs hidden"><a href="#">&larr; matches</a></nav>
 
   <section id="view-match" class="panel hidden">
     <h2 id="match-title"></h2>
@@ -26,32 +46,29 @@
     <p class="hint" id="team-meta"></p>
     <table id="team-fixtures">
       <thead>
-        <tr><th>Kickoff (UTC)</th><th>MW</th><th>Fixture</th><th class="num">Result / fair 1X2</th></tr>
+        <tr><th>Date</th><th class="num">MW</th><th>Fixture</th><th class="num">Result / fair 1X2</th></tr>
       </thead>
       <tbody></tbody>
     </table>
   </section>
 
   <div id="view-home">
-  <section class="panel">
-    <h2>Matchweek <span id="mw-num">1</span></h2>
-    <p class="hint" id="mw-hint"></p>
-    <div class="mw-nav">
-      <button id="mw-prev">&larr;</button>
-      <button id="mw-next">&rarr;</button>
+    <div class="mw-bar">
+      <button id="mw-prev" aria-label="previous matchweek">&larr;</button>
+      <select id="mw-select" aria-label="matchweek"></select>
+      <button id="mw-next" aria-label="next matchweek">&rarr;</button>
+      <span class="spacer"></span>
+      <span class="legend" title="fair 1X2 probability, no margin">
+        <span class="l-home"><i></i>home</span>
+        <span class="l-draw"><i></i>draw</span>
+        <span class="l-away"><i></i>away</span>
+      </span>
     </div>
-    <table id="fixtures-table">
-      <thead>
-        <tr><th>Kickoff (UTC)</th><th>Home</th><th></th><th>Away</th>
-            <th class="num" title="fair probability home / draw / away">1&thinsp;X&thinsp;2 (fair)</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
+    <div id="match-list"></div>
+  </div>
 
-  <section class="panel">
-    <h2>Table</h2>
-    <p class="hint" id="table-hint">Computed from played fixtures; before kickoff it shows Elo order.</p>
+  <div id="view-table" class="hidden">
+    <p class="hint" id="table-hint"></p>
     <table id="league-table">
       <thead>
         <tr><th>#</th><th>Club</th><th class="num">P</th><th class="num">W</th>
@@ -60,18 +77,19 @@
       </thead>
       <tbody></tbody>
     </table>
-  </section>
   </div>
 </main>
 
 <footer>
-  <p><a href="touchline.js">touchline.js</a> is the whole of the maths — pure,
-    tested, uncalibrated v0 model and it says so.
-    Fixtures: <a href="https://fixturedownload.com/">fixturedownload.com</a> ·
-    Elo: <a href="http://clubelo.com/">clubelo.com</a>.</p>
-  <p class="hint">AGPL-3.0-or-later · information only — no odds with margin,
-    no stakes · sibling of
-    <a href="https://github.com/melvincarvalho/tavern">tavern</a></p>
+  <p>Fair probabilities from club Elo — no margin, model stated, uncalibrated v0.
+    <a href="touchline.js">touchline.js</a> is the whole of the maths.</p>
+  <p>Fixtures <a href="https://fixturedownload.com/">fixturedownload.com</a> ·
+    Elo <a href="http://clubelo.com/">clubelo.com</a> ·
+    <a href="data/fixtures.json">open data</a> ·
+    <a href="https://github.com/melvincarvalho/touchline">source</a> ·
+    AGPL-3.0 · no ads, no trackers, no stakes</p>
 </footer>
 
 <script type="module" src="app.js"></script>
+</body>
+</html>
