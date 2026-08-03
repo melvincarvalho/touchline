@@ -18,6 +18,8 @@
 <div class="topbar">
   <a class="brand" href="#">Touch<span>line</span></a>
   <span class="season">Premier League · 2026-27</span>
+  <span class="spacer" style="flex:1"></span>
+  <span class="balance" id="balance-chip" title="paper credits — play money, local to this browser">⛁ <b id="balance-n">—</b></span>
 </div>
 
 <main>
@@ -29,6 +31,7 @@
   <nav class="tabs">
     <a href="#" id="tab-matches" class="active">Matches</a>
     <a href="#table" id="tab-table">Table</a>
+    <a href="#bets" id="tab-bets">Bets <span id="bets-badge" class="badge hidden"></span></a>
   </nav>
 
   <section id="notice" class="notice hidden"></section>
@@ -65,6 +68,18 @@
       </span>
     </div>
     <div id="match-list"></div>
+  </div>
+
+  <div id="view-bets" class="hidden">
+    <p class="hint">Paper credits, local to this browser. Priced at fair × 0.95 — the 5% is the
+      house margin, stated here so it never has to be found. Settlement is the named oracle's
+      word and nothing else.</p>
+    <div class="mw-bar">
+      <button id="settle-all">Settle open bets</button>
+      <span class="spacer"></span>
+      <span class="hint" id="bets-summary"></span>
+    </div>
+    <div id="bets-list"></div>
   </div>
 
   <div id="view-table" class="hidden">

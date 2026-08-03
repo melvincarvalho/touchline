@@ -2,6 +2,7 @@
 // touchline.js. No build, no framework. Routes: '' (matches), '#table',
 // '#team/<id>', '#match/<@id>'.
 import { fairProbs, fairOdds, leagueTable, escapeHtml as esc, validateMatchDoc } from './touchline.js';
+import { priceMarket, maxStake, placeBet, settleTicket, WAGER_EDGE_BPS } from './wager.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -45,6 +46,143 @@ function probCells(f) {
   const p = fairProbs(he, ae);
   const o = fairOdds(p);
   return { p, o };
+}
+
+// ---------------------------------------------------------------- ledger
+// localStorage owns the paper money; wager.js owns the arithmetic. Seeded
+// once per browser; the reset lives on the Bets tab, not in anyone's pocket.
+
+const LEDGER_KEY = 'touchline-ledger-v1';
+function loadLedger() {
+  try {
+    const l = JSON.parse(localStorage.getItem(LEDGER_KEY));
+    if (l && Number.isFinite(l.balance) && Number.isFinite(l.bank) && Array.isArray(l.tickets)) return l;
+  } catch { /* fresh */ }
+  return { balance: 1000, bank: 10000, tickets: [] };
+}
+let ledger = loadLedger();
+function saveLedger() {
+  localStorage.setItem(LEDGER_KEY, JSON.stringify(ledger));
+  renderBalance();
+}
+function renderBalance() {
+  $('balance-n').textContent = Math.floor(ledger.balance);
+  const open = ledger.tickets.filter((t) => t.status === 'open').length;
+  const badge = $('bets-badge');
+  badge.classList.toggle('hidden', !open);
+  badge.textContent = open || '';
+}
+
+// Every bet surface calls this: probs + identity of the match + where its
+// result will come from. kind: 'fixture' settles from data/fixtures.json;
+// 'doc' settles from the ticket's oracle (or source) URL.
+function betPanel({ probs, kickoff, kind, ref, oracle, names }) {
+  const market = priceMarket(probs);
+  if (!market) return '';
+  const cap = (pick) => Math.floor(maxStake(ledger.bank, market.odds[pick].priced));
+  const btn = (pick, label) => `
+    <button class="bet-btn" data-pick="${pick}"
+      title="max stake ${cap(pick)} (exposure cap)">
+      ${label}<b>${market.odds[pick].priced.toFixed(2)}</b></button>`;
+  return `<div class="bet-panel" data-kind="${esc(kind)}" data-ref="${esc(ref)}"
+      data-oracle="${esc(oracle || '')}" data-kickoff="${esc(kickoff)}"
+      data-probs='${JSON.stringify(probs)}' data-names='${JSON.stringify(names).replace(/'/g, '&#39;')}'>
+    <span class="hint">bet (paper)</span>
+    <input type="number" class="bet-stake" min="1" value="10" aria-label="stake">
+    ${btn('home', esc(names.home))} ${btn('draw', 'draw')} ${btn('away', esc(names.away))}
+    <span class="bet-msg hint"></span>
+  </div>`;
+}
+
+document.addEventListener('click', (ev) => {
+  const b = ev.target.closest('.bet-btn');
+  if (!b) return;
+  ev.stopPropagation();
+  const panel = b.closest('.bet-panel');
+  const stake = Number(panel.querySelector('.bet-stake').value);
+  const probs = JSON.parse(panel.dataset.probs);
+  const names = JSON.parse(panel.dataset.names);
+  const r = placeBet({
+    balance: ledger.balance, bank: ledger.bank,
+    pick: b.dataset.pick, stake, probs,
+    source: panel.dataset.ref, oracle: panel.dataset.oracle || null,
+    kickoff: panel.dataset.kickoff, now: Date.now(),
+  });
+  const msg = panel.querySelector('.bet-msg');
+  if (r.error) { msg.textContent = r.error; return; }
+  ledger.balance = r.balance;
+  ledger.tickets.push({
+    ...r.ticket,
+    id: 'tk-' + Date.now().toString(36) + '-' + ledger.tickets.length,
+    kind: panel.dataset.kind,
+    label: `${names.home} v ${names.away}`,
+    pickName: b.dataset.pick === 'draw' ? 'draw' : names[b.dataset.pick],
+    placedAt: new Date().toISOString(),
+  });
+  saveLedger();
+  msg.textContent = `ticket in — ${r.ticket.stake} at ${r.ticket.odds}`;
+});
+
+// ---------------------------------------------------------------- bets view
+
+async function resultDocFor(ticket) {
+  if (ticket.kind === 'fixture') {
+    const f = fixtures.find((x) => x['@id'] === ticket.source);
+    return f || null; // fixture objects already carry status/goals
+  }
+  const url = ticket.oracle || ticket.source;
+  if (!url) return null;
+  try {
+    const res = await fetch(url, { cache: 'no-cache' });
+    if (!res.ok) return null;
+    const doc = await res.json();
+    return validateMatchDoc(doc).ok ? doc : null;
+  } catch { return null; }
+}
+
+async function settleAll() {
+  let moved = 0;
+  for (const ticket of ledger.tickets) {
+    if (ticket.status !== 'open') continue;
+    const doc = await resultDocFor(ticket);
+    const r = settleTicket({ balance: ledger.balance, bank: ledger.bank, ticket }, doc);
+    if (!r) continue;
+    ledger.balance = r.balance;
+    ledger.bank = r.bank;
+    Object.assign(ticket, r.ticket);
+    moved++;
+  }
+  saveLedger();
+  renderBets();
+  $('bets-summary').textContent = moved ? `settled ${moved} ticket${moved > 1 ? 's' : ''}` : 'nothing to settle yet — the oracles are quiet';
+}
+
+function renderBets() {
+  renderBalance();
+  const list = $('bets-list');
+  list.innerHTML = '';
+  if (!ledger.tickets.length) {
+    list.innerHTML = '<p class="hint">No bets yet. Any priced match has a bet panel under its odds.</p>'
+      + '<p class="hint">Try the <a href="?src=examples/friendly-scheduled.json">minted example match</a> — its oracle already knows the result, so you can bet and settle inside a minute.</p>';
+    return;
+  }
+  for (const ticket of [...ledger.tickets].reverse()) {
+    const el = document.createElement('div');
+    el.className = 'ticket ' + ticket.status;
+    const ret = ticket.status === 'won' ? '+' + Math.floor(ticket.stake * ticket.odds - ticket.stake)
+      : ticket.status === 'lost' ? '-' + ticket.stake
+      : ticket.status === 'void' ? '±0' : '';
+    el.innerHTML = `
+      <span class="t-status">${esc(ticket.status)}</span>
+      <span class="t-label">${esc(ticket.label)} — <b>${esc(ticket.pickName)}</b></span>
+      <span class="t-terms">${ticket.stake} @ ${ticket.odds} <span class="hint">(fair ${ticket.fair})</span></span>
+      <span class="t-ret">${ret}</span>`;
+    list.appendChild(el);
+  }
+  const open = ledger.tickets.filter((t) => t.status === 'open');
+  const risked = open.reduce((n, t) => n + t.stake, 0);
+  $('bets-summary').textContent =
+    `${open.length} open · ${risked} staked · bank ${Math.floor(ledger.bank)}`;
 }
 
 // ---------------------------------------------------------------- matches
@@ -284,11 +422,19 @@ function renderMatch(id) {
       ${here ? '</span>' : '</a>'}</div>`;
   }
 
+  if (!played && pc && f.status === 'scheduled') {
+    inner += betPanel({
+      probs: { home: round4p(pc.p.home), draw: round4p(pc.p.draw), away: round4p(pc.p.away) },
+      kickoff: f.kickoff, kind: 'fixture', ref: f['@id'], oracle: null,
+      names: { home: nameOf(f.homeTeam), away: nameOf(f.awayTeam) },
+    });
+  }
   if (!played && pc) {
     inner += '<p class="hint" style="margin-top:.8rem">Fair = no margin · v0 Elo model, uncalibrated — see the <a href="https://github.com/melvincarvalho/touchline#the-model-honestly">README</a>.</p>';
   }
   $('match-body').innerHTML = inner;
 }
+function round4p(n) { return Math.round(n * 1e4) / 1e4; }
 
 // ---------------------------------------------------------------- external match documents
 // ?src=<url> renders a standalone match document (schema/match-doc.md).
@@ -354,6 +500,15 @@ async function renderDoc(srcUrl) {
     </div>`;
   }
 
+  if (doc.status === 'scheduled' && doc.homeTeam.elo != null && doc.awayTeam.elo != null) {
+    const p = fairProbs(doc.homeTeam.elo, doc.awayTeam.elo);
+    inner += betPanel({
+      probs: { home: round4p(p.home), draw: round4p(p.draw), away: round4p(p.away) },
+      kickoff: doc.kickoff, kind: 'doc', ref: srcUrl, oracle: doc.oracle || srcUrl,
+      names: { home: doc.homeTeam.name, away: doc.awayTeam.name },
+    });
+  }
+
   let srcHost = srcUrl;
   try { srcHost = new URL(srcUrl, location.href).host || 'this site'; } catch { /* keep raw */ }
   inner += `<div class="doc-provenance">
@@ -378,11 +533,13 @@ function ordinal(n) {
 function show(view) {
   $('view-home').classList.toggle('hidden', view !== 'home');
   $('view-table').classList.toggle('hidden', view !== 'table');
+  $('view-bets').classList.toggle('hidden', view !== 'bets');
   $('view-team').classList.toggle('hidden', view !== 'team');
   $('view-match').classList.toggle('hidden', view !== 'match');
   $('crumbs').classList.toggle('hidden', view === 'home' || view === 'table');
   $('tab-matches').classList.toggle('active', view === 'home');
   $('tab-table').classList.toggle('active', view === 'table');
+  $('tab-bets').classList.toggle('active', view === 'bets');
 }
 
 function route() {
@@ -390,6 +547,7 @@ function route() {
   if (h.startsWith('#team/')) renderTeam(h.slice(6));
   else if (h.startsWith('#match/')) renderMatch(h.slice(7));
   else if (h === '#table') { show('table'); renderTable(); }
+  else if (h === '#bets') { show('bets'); renderBets(); }
   else { show('home'); renderMatches(); }
 }
 
@@ -423,6 +581,8 @@ function notice(text) {
     if (!hasElo()) {
       notice('Elo sync pending — fixtures and kickoffs are live; fair odds appear once ratings land.');
     }
+    renderBalance();
+    $('settle-all').onclick = settleAll;
     window.addEventListener('hashchange', route);
     const src = new URLSearchParams(location.search).get('src');
     if (src && !location.hash) renderDoc(src);

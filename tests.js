@@ -4,6 +4,7 @@
 
 import { readFileSync } from 'node:fs';
 import * as t from './touchline.js';
+import * as w from './wager.js';
 
 let failures = 0;
 function check(name, cond, detail) {
@@ -141,6 +142,94 @@ console.log('match documents');
     t.validateMatchDoc({ ...good, homeTeam: { name: '<script>x</script>' } }).ok);
   check('arrays and null are refused as documents',
     !t.validateMatchDoc(null).ok && !t.validateMatchDoc([]).ok);
+}
+
+console.log('wager: pricing');
+{
+  const probs = { home: 0.5, draw: 0.25, away: 0.25 };
+  const m = w.priceMarket(probs);
+  check('fair odds are the reciprocal', close(m.odds.home.fair, 2) && close(m.odds.draw.fair, 4));
+  check('priced = fair x (1 - edge)', close(m.odds.home.priced, 2 * 0.95));
+  check('the margin is stated on the market', m.edgeBps === 500);
+  check('implied probabilities of priced odds sum OVER 1 (the overround exists)',
+    1 / m.odds.home.priced + 1 / m.odds.draw.priced + 1 / m.odds.away.priced > 1);
+  check('a broken market prices nothing', w.priceMarket({ home: 0, draw: 0.5, away: 0.5 }) === null);
+  check('a negative edge falls back rather than paying bettors to bet',
+    close(w.priceMarket(probs, -100).odds.home.priced, 2 * 0.95));
+}
+
+console.log('wager: exposure cap');
+{
+  check('even money at 10% of a 10k bank caps ~1,041',
+    Math.floor(w.maxStake(10000, 1.96)) === Math.floor(1000 / 0.96));
+  check('a 20x longshot allows ~19x less than evens',
+    w.maxStake(10000, 20) < w.maxStake(10000, 1.96) / 15);
+  check('odds at or under 1 allow nothing', w.maxStake(10000, 1) === 0 && w.maxStake(10000, 0.5) === 0);
+  check('an empty bank allows nothing', w.maxStake(0, 2) === 0);
+}
+
+console.log('wager: placement');
+{
+  const probs = { home: 0.5, draw: 0.25, away: 0.25 };
+  const base = { balance: 1000, bank: 10000, probs, kickoff: '2100-01-01T00:00:00Z', now: 0 };
+  const r = w.placeBet({ ...base, pick: 'home', stake: 100 });
+  check('a bet places', !r.error, r.error);
+  check('the stake leaves the balance at once', r.balance === 900);
+  check('the ticket carries priced AND fair odds', r.ticket.odds === 1.9 && r.ticket.fair === 2);
+  check('over-balance refused', !!w.placeBet({ ...base, pick: 'home', stake: 1001 }).error);
+  check('over-cap refused', !!w.placeBet({ ...base, balance: 99999, pick: 'home', stake: 2000 }).error);
+  check('after kickoff refused',
+    !!w.placeBet({ ...base, now: Date.parse('2100-01-01T00:00:01Z'), pick: 'home', stake: 10 }).error);
+  check('a junk pick refused', !!w.placeBet({ ...base, pick: 'both', stake: 10 }).error);
+  check('a fractional stake floors', w.placeBet({ ...base, pick: 'home', stake: 10.9 }).ticket.stake === 10);
+  check('a zero/NaN stake refused', !!w.placeBet({ ...base, pick: 'home', stake: 0 }).error
+    && !!w.placeBet({ ...base, pick: 'home', stake: NaN }).error);
+}
+
+console.log('wager: settlement');
+{
+  const mk = (pick) => w.placeBet({
+    balance: 1000, bank: 10000, pick, stake: 100,
+    probs: { home: 0.5, draw: 0.25, away: 0.25 },
+  });
+  const played = { status: 'played', homeGoals: 3, awayGoals: 1 };
+
+  const won = mk('home');
+  const sw = w.settleTicket({ balance: won.balance, bank: won.bank, ticket: won.ticket }, played);
+  check('a winning ticket pays stake x odds', close(sw.balance, 900 + 100 * 1.9));
+  check('the bank funds exactly the profit', close(sw.bank, 10000 - 90));
+  check('credits conserved on a win',
+    close(sw.balance + sw.bank, won.balance + won.bank + 100)); // stake re-enters from escrow
+
+  const lost = mk('away');
+  const sl = w.settleTicket({ balance: lost.balance, bank: lost.bank, ticket: lost.ticket }, played);
+  check('a losing stake moves into the bank', sl.bank === 10100 && sl.balance === 900);
+
+  const draw = mk('draw');
+  const sd = w.settleTicket({ balance: draw.balance, bank: draw.bank, ticket: draw.ticket },
+    { status: 'played', homeGoals: 2, awayGoals: 2 });
+  check('a draw pays the draw', sd.ticket.status === 'won' && sd.balance > 900);
+
+  const voided = w.settleTicket({ balance: won.balance, bank: won.bank, ticket: mk('home').ticket },
+    { status: 'postponed' });
+  check('postponed voids and refunds the stake', voided.ticket.status === 'void'
+    && voided.balance === won.balance + 100 && voided.bank === 10000);
+
+  check('no result, no movement',
+    w.settleTicket({ balance: 1, bank: 1, ticket: mk('home').ticket }, { status: 'scheduled' }) === null);
+  check('a closed ticket cannot settle twice',
+    w.settleTicket({ balance: 1, bank: 1, ticket: { ...mk('home').ticket, status: 'won' } }, played) === null);
+  check('outcomeFor is the single source of the verdict',
+    w.outcomeFor('home', played) === 'won' && w.outcomeFor('away', played) === 'lost'
+    && w.outcomeFor('draw', { status: 'played', homeGoals: 1, awayGoals: 1 }) === 'won');
+}
+
+console.log('wager: purity');
+{
+  const src = readFileSync(new URL('./wager.js', import.meta.url), 'utf8');
+  check('no imports', !/^\s*import\s/m.test(src));
+  check('no clock of its own', !/Date\.now|new Date/.test(src));
+  check('no storage, no DOM, no network', !/localStorage|document\.|fetch\(/.test(src));
 }
 
 console.log('data files (when present)');

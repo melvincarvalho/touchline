@@ -20,7 +20,12 @@ static page that renders them.
 3. **Information site** — `index.html` + `app.js`: matchweek fixtures with
    fair probabilities, the league table (Elo-ordered until the season
    starts). Read-only, no accounts, no margin.
-4. **Betting** — *not here yet, deliberately.* When it comes it is a separate
+4. **Betting** — the **embryo** is in: paper credits in localStorage, 1X2
+   priced at fair × 0.95 with the margin stated on the ticket, the tavern's
+   exposure-capped stakes, and settlement that is exactly the named oracle's
+   word (`wager.js`, pure, pinned, mutation-checked). The real contract —
+   pod ledger, anchored history, pool-bank shares — is still to come; this
+   is the loop it will grow inside. Previously: *not here yet, deliberately.* When it comes it is a separate
    contract in the worldcup web-contract style: public rules, anchored
    history, a pool-bank with the tavern's share accounting, and named oracle
    feeds. The information layer must stand alone first.

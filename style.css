@@ -248,6 +248,49 @@ table.facts td.num { width: 6rem; font-weight: 600; }
 .doc-provenance code { color: var(--ink-2); }
 .doc-provenance a { color: var(--accent); overflow-wrap: anywhere; }
 
+/* ---------- wager embryo ---------- */
+
+.balance { font-size: .85rem; color: var(--ink-2); }
+.balance b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.badge {
+  display: inline-grid; place-items: center; min-width: 1.1rem; height: 1.1rem;
+  border-radius: .55rem; background: var(--away); color: #fff;
+  font-size: .68rem; padding: 0 .25rem; vertical-align: 1px;
+}
+
+.bet-panel {
+  display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+  margin-top: .9rem; padding: .6rem .7rem;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+}
+.bet-stake { width: 4.5rem; font: inherit; padding: .25rem .4rem;
+  border: 1px solid var(--line); border-radius: 3px; }
+.bet-btn {
+  font: inherit; font-size: .82rem; cursor: pointer;
+  display: inline-flex; gap: .45rem; align-items: baseline;
+  background: var(--row); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 4px; padding: .3rem .7rem;
+}
+.bet-btn b { font-variant-numeric: tabular-nums; }
+.bet-btn:hover { border-color: var(--accent); }
+.bet-msg { min-width: 8rem; }
+
+.ticket {
+  display: grid; grid-template-columns: 3.6rem 1fr auto 3.5rem;
+  gap: .8rem; align-items: center;
+  background: var(--row); border-bottom: 1px solid var(--line);
+  padding: .45rem .7rem; font-size: .88rem;
+}
+.t-status { font-size: .7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--ink-3); }
+.ticket.won .t-status { color: var(--home); }
+.ticket.lost .t-status { color: var(--live); }
+.t-terms { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.t-ret { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+.ticket.won .t-ret { color: var(--home); }
+.ticket.lost .t-ret { color: var(--live); }
+
 footer { max-width: 46rem; margin: 2rem auto 0; padding: 0 .6rem 2rem;
          color: var(--ink-3); font-size: .78rem; text-align: center; }
 footer a { color: var(--ink-2); }
