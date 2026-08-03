@@ -156,42 +156,131 @@ function renderTeam(id) {
   }
 }
 
+// Last-N results for a team, most recent first: [{res:'W'|'D'|'L', f}]
+function formOf(id, n = 5) {
+  return fixtures
+    .filter((f) => f.status === 'played' && (f.homeTeam === id || f.awayTeam === id))
+    .sort((a, b) => b.kickoff.localeCompare(a.kickoff))
+    .slice(0, n)
+    .map((f) => {
+      const home = f.homeTeam === id;
+      const gf = home ? f.homeGoals : f.awayGoals;
+      const ga = home ? f.awayGoals : f.homeGoals;
+      return { res: gf > ga ? 'W' : gf < ga ? 'L' : 'D', f };
+    });
+}
+
+function formStrip(id) {
+  const form = formOf(id);
+  if (!form.length) return '<span class="hint">no matches yet</span>';
+  return form.map(({ res, f }) =>
+    `<a class="chip ${res.toLowerCase()}" href="#match/${f['@id']}"
+        title="${nameOf(f.homeTeam)} ${f.homeGoals}–${f.awayGoals} ${nameOf(f.awayTeam)}">${res}</a>`).join('');
+}
+
+function countdownTo(iso) {
+  const ms = new Date(iso) - Date.now();
+  if (ms <= 0) return 'kick-off due';
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  if (d > 0) return `in ${d}d ${h}h`;
+  if (h > 0) return `in ${h}h ${m}m`;
+  return `in ${m}m`;
+}
+
 function renderMatch(id) {
   const f = fixtures.find((x) => x['@id'] === id);
   if (!f) { location.hash = ''; return; }
   show('match');
-  $('match-title').textContent = `${nameOf(f.homeTeam)} v ${nameOf(f.awayTeam)}`;
+  const played = f.status === 'played';
   const ko = new Date(f.kickoff);
+  $('match-title').textContent = '';
   $('match-meta').textContent =
     `Matchweek ${f.matchweek} · ${dayFmt.format(ko)}, ${timeFmt.format(ko)} · ${f.venue}`;
-  const body = $('match-body');
-  let inner = '';
-  if (f.status === 'played') {
-    inner += `<p class="score">${f.homeGoals}–${f.awayGoals}</p>`;
-  } else {
-    const pc = probCells(f);
-    if (pc) {
-      const { p, o } = pc;
-      inner += `<table><thead><tr><th></th><th class="num">${nameOf(f.homeTeam)}</th>
-        <th class="num">draw</th><th class="num">${nameOf(f.awayTeam)}</th></tr></thead><tbody>
-        <tr><td>fair probability</td><td class="num">${fmtPct(p.home)}</td>
-          <td class="num">${fmtPct(p.draw)}</td><td class="num">${fmtPct(p.away)}</td></tr>
-        <tr><td>fair decimal</td><td class="num">${o.home.toFixed(2)}</td>
-          <td class="num">${o.draw.toFixed(2)}</td><td class="num">${o.away.toFixed(2)}</td></tr>
-        <tr><td>Elo</td><td class="num">${eloOf(f.homeTeam)}</td><td class="num"></td>
-          <td class="num">${eloOf(f.awayTeam)}</td></tr>
-        </tbody></table>
-        <p class="hint">Fair = no margin · v0 Elo model, uncalibrated — see the README.</p>`;
-    } else {
-      inner += '<p class="hint">Probabilities appear once the Elo sync lands.</p>';
-    }
+
+  const table = leagueTable(fixtures);
+  const pos = (tid) => {
+    const i = table.findIndex((r) => r.team === tid);
+    return i >= 0 ? i + 1 : null;
+  };
+  const rec = (tid) => table.find((r) => r.team === tid);
+
+  const he = eloOf(f.homeTeam);
+  const ae = eloOf(f.awayTeam);
+  const pc = probCells(f);
+
+  // --- hero: team / centre / team
+  const centre = played
+    ? `<div class="score">${f.homeGoals}–${f.awayGoals}</div><div class="hint">full time</div>`
+    : `<div class="ko-time">${timeFmt.format(ko)}</div><div class="hint">${countdownTo(f.kickoff)}</div>`;
+  const teamCell = (tid) => {
+    const r = rec(tid);
+    const p = pos(tid);
+    return `<a class="hero-team" href="#team/${tid}">${nameOf(tid)}</a>
+      <div class="hint">${p ? ordinal(p) + (r ? ` · ${r.points} pts` : '') : (eloOf(tid) != null ? 'Elo ' + eloOf(tid) : '')}</div>
+      <div class="form">${formStrip(tid)}</div>`;
+  };
+  let inner = `<div class="hero">
+    <div class="hero-side">${teamCell(f.homeTeam)}</div>
+    <div class="hero-centre">${centre}</div>
+    <div class="hero-side right">${teamCell(f.awayTeam)}</div>
+  </div>`;
+
+  // --- fair 1X2, full width
+  if (!played && pc) {
+    const { p, o } = pc;
+    inner += `<div class="bigbar-wrap" title="fair 1X2 from Elo — no margin">
+      <div class="bigbar">
+        <span class="h" style="flex:${p.home}"></span><span class="x" style="flex:${p.draw}"></span><span class="a" style="flex:${p.away}"></span>
+      </div>
+      <div class="bigbar-nums">
+        <span><b>${fmtPct(p.home)}</b> home · ${o.home.toFixed(2)}</span>
+        <span>draw ${fmtPct(p.draw)} · ${o.draw.toFixed(2)}</span>
+        <span><b>${fmtPct(p.away)}</b> away · ${o.away.toFixed(2)}</span>
+      </div>
+    </div>`;
+  } else if (!played) {
+    inner += '<p class="hint">Fair odds appear once the Elo sync lands.</p>';
   }
-  const rev = fixtures.find((x) => x.homeTeam === f.awayTeam && x.awayTeam === f.homeTeam);
-  if (rev) {
-    inner += `<p class="hint">Reverse fixture: <a href="#match/${rev['@id']}">MW${rev.matchweek}, ${rev.kickoff.slice(0, 10)}</a>`
-      + (rev.status === 'played' ? ` — finished ${rev.homeGoals}–${rev.awayGoals}` : '') + '</p>';
+
+  // --- facts table: Elo, position, season record
+  const factRow = (label, hv, av) =>
+    `<tr><td class="num">${hv ?? '—'}</td><td class="fact">${label}</td><td class="num">${av ?? '—'}</td></tr>`;
+  const rh = rec(f.homeTeam);
+  const ra = rec(f.awayTeam);
+  inner += `<table class="facts"><tbody>
+    ${factRow('Elo', he, ae)}
+    ${he != null && ae != null ? factRow('Elo edge (home adv. incl.)',
+      he + 65 - ae > 0 ? '+' + (he + 65 - ae) : '', ae - he - 65 > 0 ? '+' + (ae - he - 65) : '') : ''}
+    ${rh || ra ? factRow('Record', rh ? `${rh.won}-${rh.drawn}-${rh.lost}` : null, ra ? `${ra.won}-${ra.drawn}-${ra.lost}` : null) : ''}
+    ${rh || ra ? factRow('Goals', rh ? `${rh.gf}:${rh.ga}` : null, ra ? `${ra.gf}:${ra.ga}` : null) : ''}
+  </tbody></table>`;
+
+  // --- both meetings this season
+  const meetings = fixtures.filter((x) =>
+    (x.homeTeam === f.homeTeam && x.awayTeam === f.awayTeam)
+    || (x.homeTeam === f.awayTeam && x.awayTeam === f.homeTeam));
+  inner += '<div class="hint" style="margin-top:.9rem">Meetings this season</div>';
+  for (const m of meetings) {
+    const here = m['@id'] === f['@id'];
+    inner += `<div class="meeting${here ? ' here' : ''}">
+      ${here ? '<span>' : `<a href="#match/${m['@id']}">`}
+      MW${m.matchweek} · ${m.kickoff.slice(0, 10)} · ${nameOf(m.homeTeam)} v ${nameOf(m.awayTeam)}
+      ${m.status === 'played' ? ` — ${m.homeGoals}–${m.awayGoals}` : ''}
+      ${here ? '</span>' : '</a>'}</div>`;
   }
-  body.innerHTML = inner;
+
+  if (!played && pc) {
+    inner += '<p class="hint" style="margin-top:.8rem">Fair = no margin · v0 Elo model, uncalibrated — see the <a href="https://github.com/melvincarvalho/touchline#the-model-honestly">README</a>.</p>';
+  }
+  $('match-body').innerHTML = inner;
+}
+
+function ordinal(n) {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
 // ---------------------------------------------------------------- routing
